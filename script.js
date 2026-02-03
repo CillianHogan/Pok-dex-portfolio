@@ -1,13 +1,19 @@
 const pokemonList = document.querySelector("#pokemonList");
 const botonesHeader = document.querySelectorAll(".type-filter");
+const promesas = [];
 
 let URL = "https://pokeapi.co/api/v2/pokemon/";
+let allPokemon = [];
 
 for (let i = 1; i <= 151; i++) {
-    fetch(URL + i)
-        .then((response) => response.json())
-        .then(data => mostrarPokemon(data))
+    promesas.push(fetch(URL + i).then((response) => response.json()));
 }
+
+Promise.all(promesas).then(pokemon => {
+    allPokemon = pokemon;
+    pokemonList.innerHTML = "";
+    allPokemon.forEach(p => mostrarPokemon(p));
+})
 
 function mostrarPokemon(poke) {
 
@@ -51,20 +57,15 @@ botonesHeader.forEach(boton => boton.addEventListener("click", (event) => {
 
     pokemonList.innerHTML = "";
 
-    for (let i = 1; i <= 151; i++) {
-    fetch(URL + i)
-        .then((response) => response.json())
-        .then(data => {
-
-            if(botonId === "seeAll") {
-                mostrarPokemon(data);
-            } else {
-                const tipos = (data.types.map(type => type.type.name));
+    allPokemon.forEach(data => {
+        if(botonId === "seeAll") {
+            mostrarPokemon(data);
+        } else {
+            const tipos = data.types.map(type => type.type.name);
             if(tipos.some(tipo => tipo.includes(botonId))) {
                 mostrarPokemon(data);
             }
-            }
-        })
+        }
             
-}
-}))
+});
+}));
